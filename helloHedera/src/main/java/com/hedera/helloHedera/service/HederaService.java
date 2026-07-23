@@ -6,6 +6,8 @@ import org.springframework.stereotype.Service;
 import com.hedera.hashgraph.sdk.AccountBalance;
 import com.hedera.hashgraph.sdk.AccountBalanceQuery;
 import com.hedera.hashgraph.sdk.AccountId;
+import com.hedera.hashgraph.sdk.AccountInfo;
+import com.hedera.hashgraph.sdk.AccountInfoQuery;
 import com.hedera.hashgraph.sdk.Client;
 import com.hedera.hashgraph.sdk.Hbar;
 import com.hedera.hashgraph.sdk.PrivateKey;
@@ -52,4 +54,17 @@ public class HederaService {
 
     return receipt;
   }
+
+
+  //basic information about your Hedera account.
+  public AccountInfo getAccountInfoService() throws Exception{
+    Client client = Client.forTestnet();
+    client.setOperator(AccountId.fromString(accountId), operatorKey());
+
+    AccountInfo info = new AccountInfoQuery().setAccountId(AccountId.fromString(accountId)).execute(client);
+    return info;
+  }
+
+
+
 }
