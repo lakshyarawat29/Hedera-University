@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.hedera.hashgraph.sdk.AccountInfo;
+import com.hedera.hashgraph.sdk.TokenInfo;
 import com.hedera.hashgraph.sdk.TransactionReceipt;
 import com.hedera.helloHedera.service.HederaService;
 
@@ -34,5 +35,30 @@ public class HederaController {
     @GetMapping("/info")
     public ResponseEntity<AccountInfo> info() throws Exception{
       return ResponseEntity.ok(hederaService.getAccountInfoService());
+    }
+
+    @PostMapping("/ft")
+    public ResponseEntity<TransactionReceipt> createFT() throws Exception{
+      return ResponseEntity.ok(hederaService.createFungibleTokenService());
+    }
+
+    @PostMapping("/ft2")
+    public ResponseEntity<TransactionReceipt> createFT2() throws Exception{
+      return ResponseEntity.ok(hederaService.createFungibleTokenServiceV2());
+    }
+
+    @GetMapping("/ftinfo")
+    public ResponseEntity<TokenInfo> ftinfo() throws Exception{
+      return ResponseEntity.ok(hederaService.getTokenInfoService());
+    }
+
+    @PostMapping("/mintft")
+    public ResponseEntity<TransactionReceipt> mintft() throws Exception{
+      return ResponseEntity.ok(hederaService.mintMoreFungibleTokens());
+    }
+
+    @PostMapping("/burnft")
+    public ResponseEntity<TransactionReceipt> burnft() throws Exception{
+      return ResponseEntity.ok(hederaService.burnFungibleTokens());
     }
 }
