@@ -4,10 +4,14 @@ import java.net.http.HttpResponse.ResponseInfo;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.hedera.hashgraph.sdk.AccountBalance;
+import com.hedera.hashgraph.sdk.AccountId;
 import com.hedera.hashgraph.sdk.AccountInfo;
+import com.hedera.hashgraph.sdk.TokenId;
 import com.hedera.hashgraph.sdk.TokenInfo;
 import com.hedera.hashgraph.sdk.TransactionReceipt;
 import com.hedera.helloHedera.service.HederaService;
@@ -47,9 +51,9 @@ public class HederaController {
       return ResponseEntity.ok(hederaService.createFungibleTokenServiceV2());
     }
 
-    @GetMapping("/ftinfo")
-    public ResponseEntity<TokenInfo> ftinfo() throws Exception{
-      return ResponseEntity.ok(hederaService.getTokenInfoService());
+    @GetMapping("/ftinfo/{tokenId}")
+    public ResponseEntity<TokenInfo> ftinfo(@PathVariable String tokenId) throws Exception{
+      return ResponseEntity.ok(hederaService.getTokenInfoService(TokenId.fromString(tokenId)));
     }
 
     @PostMapping("/mintft")
@@ -60,5 +64,20 @@ public class HederaController {
     @PostMapping("/burnft")
     public ResponseEntity<TransactionReceipt> burnft() throws Exception{
       return ResponseEntity.ok(hederaService.burnFungibleTokens());
+    }
+
+    @PostMapping("/associate/{accountId}")
+    public ResponseEntity<TransactionReceipt> associate(@PathVariable String accountId) throws Exception{
+      return ResponseEntity.ok(hederaService.associateAccountWithToken(AccountId.fromString(accountId)));
+    }
+
+    @PostMapping("/transferft/{amount}")
+    public ResponseEntity<TransactionReceipt> transferft(@PathVariable long amount) throws Exception{
+      return ResponseEntity.ok(hederaService.transferFungibleToken(amount));
+    }
+
+    @GetMapping("/ftbalance/{accountId}")
+    public ResponseEntity<AccountBalance> ftbalance(@PathVariable String accountId) throws Exception{
+      return ResponseEntity.ok(hederaService.getFungibleTokenBalance(AccountId.fromString(accountId)));
     }
 }
