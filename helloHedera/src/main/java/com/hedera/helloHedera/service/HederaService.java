@@ -19,14 +19,18 @@ import com.hedera.hashgraph.sdk.PrivateKey;
 import com.hedera.hashgraph.sdk.TokenAssociateTransaction;
 import com.hedera.hashgraph.sdk.TokenBurnTransaction;
 import com.hedera.hashgraph.sdk.TokenCreateTransaction;
+import com.hedera.hashgraph.sdk.TokenFreezeTransaction;
 import com.hedera.hashgraph.sdk.TokenGrantKycTransaction;
 import com.hedera.hashgraph.sdk.TokenId;
 import com.hedera.hashgraph.sdk.TokenInfo;
 import com.hedera.hashgraph.sdk.TokenInfoQuery;
 import com.hedera.hashgraph.sdk.TokenMintTransaction;
+import com.hedera.hashgraph.sdk.TokenPauseTransaction;
 import com.hedera.hashgraph.sdk.TokenRelationship;
 import com.hedera.hashgraph.sdk.TokenRevokeKycTransaction;
 import com.hedera.hashgraph.sdk.TokenType;
+import com.hedera.hashgraph.sdk.TokenUnfreezeTransaction;
+import com.hedera.hashgraph.sdk.TokenUnpauseTransaction;
 import com.hedera.hashgraph.sdk.TokenUpdateTransaction;
 import com.hedera.hashgraph.sdk.TransactionReceipt;
 import com.hedera.hashgraph.sdk.TransactionResponse;
@@ -288,4 +292,108 @@ public class HederaService {
 
     return info.tokenRelationships.get(tokenId);
   }
+
+  //lets create a token with freeze key, and then we can freeze and unfreeze the account for that token on Hedera, allowing the account to lose access and interaction with the token while ensuring compliance with regulatory requirements.
+  public TransactionReceipt createFreezeToken() throws Exception{
+    Client client = Client.forTestnet();
+    client.setOperator(AccountId.fromString(accountId), operatorKey());
+    return new TokenCreateTransaction()
+      .setTokenName("LakshyaFreezeToken")
+      .setTokenSymbol("LKFT")
+      .setInitialSupply(1000000)
+      .setDecimals(1)
+      .setTreasuryAccountId(AccountId.fromString(accountId))
+      .setAdminKey(operatorKey())
+      .setSupplyKey(operatorKey())
+      .setFreezeKey(operatorKey())
+      .execute(client)
+      .getReceipt(client);
+  }
+
+  //freeze the account for a specific token on Hedera, allowing the account to lose access and interaction with the token while ensuring compliance with regulatory requirements.
+  public TransactionReceipt freezeAccountForToken(AccountId rec_accountId, TokenId tokenId) throws Exception{
+    Client client = Client.forTestnet();
+    client.setOperator(AccountId.fromString(accountId), operatorKey());
+    associateAccountWithToken(rec_accountId, tokenId);
+    return new TokenFreezeTransaction()
+      .setAccountId(rec_accountId)
+      .setTokenId(tokenId)
+      .execute(client)
+      .getReceipt(client);
+  }
+
+  //check the freeze status for the account and the token, allowing users to verify whether the account is frozen and if it still has access to the token
+  public TokenRelationship checkFreezeStatus(AccountId receiverAccountId,TokenId tokenId) throws Exception {
+    Client client = Client.forTestnet();
+    client.setOperator(AccountId.fromString(accountId), operatorKey());
+    AccountInfo info = new AccountInfoQuery().setAccountId(receiverAccountId).execute(client);
+    return info.tokenRelationships.get(tokenId);
+  }
+
+  //revoke the freeze status for the account and the token, allowing users to verify whether the account is unfrozen and if it still has access to the token
+  public TransactionReceipt unfreezeAccountForToken(AccountId rec_accountId, TokenId tokenId) throws Exception{
+    Client client = Client.forTestnet();
+    client.setOperator(AccountId.fromString(accountId), operatorKey());
+    return new TokenUnfreezeTransaction().setAccountId(rec_accountId).setTokenId(tokenId).execute(client).getReceipt(client);
+  }
+
+  //lets create a token with pause key, and then we can pause and unpause the account for that token on Hedera, allowing the account to lose access and interaction with the token while ensuring compliance with regulatory requirements.
+  public TransactionReceipt createPauseToken() throws Exception{
+    Client client = Client.forTestnet();
+    client.setOperator(AccountId.fromString(accountId), operatorKey());
+    return new TokenCreateTransaction()
+      .setTokenName("LakshyaPauseToken")
+      .setTokenSymbol("LKPT")
+      .setInitialSupply(1000000)
+      .setDecimals(1)
+      .setTreasuryAccountId(AccountId.fromString(accountId))
+      .setAdminKey(operatorKey())
+      .setSupplyKey(operatorKey())
+      .setPauseKey(operatorKey())
+      .setFreezeKey(operatorKey())
+      .execute(client)
+      .getReceipt(client);
+  }
+
+  //lets pause the token 
+  public TransactionReceipt pauseToken(TokenId tokenId) throws Exception{
+    Client client = Client.forTestnet();
+    client.setOperator(AccountId.fromString(accountId), operatorKey());
+    return new TokenPauseTransaction().setTokenId(tokenId).execute(client).getReceipt(client);
+  }
+
+  //check the pause status for the account and the token, allowing users to verify whether the account is paused and if it still has access to the token
+  public TokenInfo checkPauseStatus(TokenId tokenId) throws Exception {
+    Client client = Client.forTestnet();
+    client.setOperator(AccountId.fromString(accountId), operatorKey());
+    TokenInfo info = new TokenInfoQuery().setTokenId(tokenId).execute(client);
+    return info;
+  }
+
+  //resume the token 
+  public TransactionReceipt unpauseToken(TokenId tokenId) throws Exception{
+    Client client = Client.forTestnet();
+    client.setOperator(AccountId.fromString(accountId), operatorKey());
+    return new TokenUnpauseTransaction().setTokenId(tokenId).execute(client).getReceipt(client);
+  } 
+
+  //lets create the wipe tokens and account for the token on Hedera, allowing the account to lose access and interaction with the token while ensuring compliance with regulatory requirements.
+
+  public TransactionReceipt createWipeToken() throws Exception{
+    Client client = Client.forTestnet();
+    client.setOperator(AccountId.fromString(accountId), operatorKey());
+    return new TokenCreateTransaction()
+      .setTokenName("LakshyaWipeToken")
+      .setTokenSymbol("LKWT")
+      .setInitialSupply(1000000)
+      .setDecimals(1)
+      .setTreasuryAccountId(AccountId.fromString(accountId))
+      .setAdminKey(operatorKey())
+      .setSupplyKey(operatorKey())
+      .setWipeKey(operatorKey())
+      .execute(client)
+      .getReceipt(client);
+  }
+
+  //creating an account that contain the token that needs to be wiped, allowing the account to lose access and interaction with the token while ensuring compliance with regulatory requirements.
 }

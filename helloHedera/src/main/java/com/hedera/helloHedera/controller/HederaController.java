@@ -119,4 +119,44 @@ public class HederaController {
     public ResponseEntity<TokenRelationship> checkrevokekyc(@PathVariable String accountId, @PathVariable String tokenId) throws Exception{
       return ResponseEntity.ok(hederaService.checkRevokeKycStatus(AccountId.fromString(accountId), TokenId.fromString(tokenId)));
     }
+
+    @PostMapping("/freeze")
+    public ResponseEntity<TransactionReceipt> freeze() throws Exception{
+      return ResponseEntity.ok(hederaService.createFreezeToken());
+    }
+
+    @PostMapping("/freeze/{accountId}/{tokenId}")
+    public ResponseEntity<TransactionReceipt> freeze(@PathVariable String accountId, @PathVariable String tokenId) throws Exception{
+      return ResponseEntity.ok(hederaService.freezeAccountForToken(AccountId.fromString(accountId), TokenId.fromString(tokenId)));
+    }
+
+    @GetMapping("/checkfreeze/{accountId}/{tokenId}")
+    public ResponseEntity<TokenRelationship> checkfreeze(@PathVariable String accountId, @PathVariable String tokenId) throws Exception{
+      return ResponseEntity.ok(hederaService.checkFreezeStatus(AccountId.fromString(accountId), TokenId.fromString(tokenId)));
+    }
+
+    @PostMapping("/unfreeze/{accountId}/{tokenId}")
+    public ResponseEntity<TransactionReceipt> unfreeze(@PathVariable String accountId, @PathVariable String tokenId) throws Exception{
+      return ResponseEntity.ok(hederaService.unfreezeAccountForToken(AccountId.fromString(accountId), TokenId.fromString(tokenId)));
+    }
+
+    @PostMapping("/pause")
+    public ResponseEntity<TransactionReceipt> pause() throws Exception{
+      return ResponseEntity.ok(hederaService.createPauseToken());
+    }
+
+    @PostMapping("/pause/{tokenId}")
+    public ResponseEntity<TransactionReceipt> pause(@PathVariable String tokenId) throws Exception{
+      return ResponseEntity.ok(hederaService.pauseToken(TokenId.fromString(tokenId)));  
+    }
+
+    @GetMapping("/checkpause/{tokenId}")
+    public ResponseEntity<TokenInfo> checkpause(@PathVariable String tokenId) throws Exception{
+      return ResponseEntity.ok(hederaService.checkPauseStatus(TokenId.fromString(tokenId)));
+    }
+
+    @PostMapping("/unpause/{tokenId}")
+    public ResponseEntity<TransactionReceipt> unpause(@PathVariable String tokenId) throws Exception{
+      return ResponseEntity.ok(hederaService.unpauseToken(TokenId.fromString(tokenId)));
+    }
 }
