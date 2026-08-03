@@ -32,6 +32,8 @@ import com.hedera.hashgraph.sdk.TokenType;
 import com.hedera.hashgraph.sdk.TokenUnfreezeTransaction;
 import com.hedera.hashgraph.sdk.TokenUnpauseTransaction;
 import com.hedera.hashgraph.sdk.TokenUpdateTransaction;
+import com.hedera.hashgraph.sdk.TokenWipeTransaction;
+import com.hedera.hashgraph.sdk.ReceiptStatusException;
 import com.hedera.hashgraph.sdk.TransactionReceipt;
 import com.hedera.hashgraph.sdk.TransactionResponse;
 import com.hedera.hashgraph.sdk.TransferTransaction;
@@ -179,10 +181,21 @@ public class HederaService {
 
   //lets transfer LKC2 fungible token from one account to another on Hedera, enabling the movement of tokens between accounts for various purposes such as payments, transfers, or other transactions.
 
-  public TransactionReceipt transferFungibleToken(long amount) throws Exception{
+  public TransactionReceipt transferFungibleToken(AccountId recieverAccountId, TokenId tokenId, long amount) throws Exception{
     Client client = Client.forTestnet();
     client.setOperator(AccountId.fromString(accountId), operatorKey());
-    return new TransferTransaction().addTokenTransfer(TokenId.fromString("0.0.9846074"), AccountId.fromString(accountId), -1*amount).addTokenTransfer(TokenId.fromString("0.0.9846074"), AccountId.fromString(recieverAccountId), amount).execute(client).getReceipt(client);
+
+    if (recieverAccountId.equals(AccountId.fromString(this.recieverAccountId))) {
+      try {
+        associateAccountWithToken(recieverAccountId, tokenId);
+      } catch (ReceiptStatusException exception) {
+        if (!exception.getMessage().contains("TOKEN_ALREADY_ASSOCIATED_TO_ACCOUNT")) {
+          throw exception;
+        }
+      }
+    }
+
+    return new TransferTransaction().addTokenTransfer(tokenId, AccountId.fromString(accountId), -1*amount).addTokenTransfer(tokenId, recieverAccountId, amount).execute(client).getReceipt(client);
   }
 
   //account balance of LKC2 fungible token for a specific account on Hedera, allowing users to check the balance of their tokens and track their holdings.
@@ -395,5 +408,37 @@ public class HederaService {
       .getReceipt(client);
   }
 
-  //creating an account that contain the token that needs to be wiped, allowing the account to lose access and interaction with the token while ensuring compliance with regulatory requirements.
+  //wipe the account for a specific token on Hedera, allowing the account to lose access and interaction with the token while ensuring compliance with regulatory requirements.
+  public TransactionReceipt wipeAccountForToken(AccountId rec_accountId, TokenId tokenId, long amount) throws Exception{
+    Client client = Client.forTestnet();
+    client.setOperator(AccountId.fromString(accountId), operatorKey());
+    return new TokenWipeTransaction()
+      .setAccountId(rec_accountId)
+      .setTokenId(tokenId)
+      .setAmount(amount)
+      .execute(client)
+      .getReceipt(client);
+  }
+
+  // public TransactionReceipt checkWipeTokenStatusFromAccount(AccountId rec_accountId, TokenId tokenId) throws Exception{
+  //   Client client = Client.forTestnet();
+  //   client.setOperator(AccountId.fromString(accountId), operatorKey());
+  //   AccountInfo info = new AccountInfoQuery().setAccountId(rec_accountId).execute(client);
+  //   info.tokenRelationships
+  // }
+
+  //wipe the NFT token 
+  // public TransactionReceipt wipeNFTForToken(AccountId rec_accountId, TokenId tokenId, long serialNumber) throws Exception{
+  //   Client client = Client.forTestnet();
+  //   client.setOperator(AccountId.fromString(accountId), operatorKey());
+  //   associateAccountWithToken(rec_accountId, tokenId);
+  //   mint
+  //   transferNFTCollection(tokenId, serialNumber);
+  //   return new TokenWipeTransaction()
+  //     .setAccountId(rec_accountId)
+  //     .setTokenId(tokenId)
+  //     .setSerials(new ArrayList<>(List.of(serialNumber)))
+  //     .execute(client)
+  //     .getReceipt(client);
+  // }
 }

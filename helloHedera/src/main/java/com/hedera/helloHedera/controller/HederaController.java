@@ -70,9 +70,9 @@ public class HederaController {
       return ResponseEntity.ok(hederaService.associateAccountWithToken(AccountId.fromString(accountId), TokenId.fromString(tokenId)));
     }
 
-    @PostMapping("/transferft/{amount}")
-    public ResponseEntity<TransactionReceipt> transferft(@PathVariable long amount) throws Exception{
-      return ResponseEntity.ok(hederaService.transferFungibleToken(amount));
+    @PostMapping("/transferft/{accountId}/{tokenId}/{amount}")
+    public ResponseEntity<TransactionReceipt> transferft(@PathVariable String accountId, @PathVariable String tokenId, @PathVariable long amount) throws Exception{
+      return ResponseEntity.ok(hederaService.transferFungibleToken(AccountId.fromString(accountId), TokenId.fromString(tokenId), amount));
     }
 
     @GetMapping("/ftbalance/{accountId}")
@@ -158,5 +158,15 @@ public class HederaController {
     @PostMapping("/unpause/{tokenId}")
     public ResponseEntity<TransactionReceipt> unpause(@PathVariable String tokenId) throws Exception{
       return ResponseEntity.ok(hederaService.unpauseToken(TokenId.fromString(tokenId)));
+    }
+
+    @PostMapping("/wipetoken")
+    public ResponseEntity<TransactionReceipt> wipetoken() throws Exception{
+      return ResponseEntity.ok(hederaService.createWipeToken());
+    }
+
+    @PostMapping("/wipetoken/{accountId}/{tokenId}/{amount}")
+    public ResponseEntity<TransactionReceipt> wipetoken(@PathVariable String accountId, @PathVariable String tokenId, @PathVariable long amount) throws Exception{
+      return ResponseEntity.ok(hederaService.wipeAccountForToken(AccountId.fromString(accountId), TokenId.fromString(tokenId), amount));
     }
 }
