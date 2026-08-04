@@ -4,6 +4,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.hedera.hashgraph.sdk.AccountBalance;
@@ -55,14 +56,14 @@ public class HederaController {
       return ResponseEntity.ok(hederaService.getTokenInfoService(TokenId.fromString(tokenId)));
     }
 
-    @PostMapping("/mintft")
-    public ResponseEntity<TransactionReceipt> mintft() throws Exception{
-      return ResponseEntity.ok(hederaService.mintMoreFungibleTokens());
+    @PostMapping("/mintft/{tokenId}/{amount}")
+    public ResponseEntity<TransactionReceipt> mintft(@PathVariable String tokenId, @PathVariable long amount) throws Exception{
+      return ResponseEntity.ok(hederaService.mintMoreFungibleTokens(TokenId.fromString(tokenId), amount));
     }
 
-    @PostMapping("/burnft")
-    public ResponseEntity<TransactionReceipt> burnft() throws Exception{
-      return ResponseEntity.ok(hederaService.burnFungibleTokens());
+    @PostMapping("/burnft/{tokenId}/{amount}")
+    public ResponseEntity<TransactionReceipt> burnft(@PathVariable String tokenId, @PathVariable long amount) throws Exception{
+      return ResponseEntity.ok(hederaService.burnFungibleTokens(TokenId.fromString(tokenId), amount));
     }
 
     @PostMapping("/associate/{accountId}/{tokenId}")
@@ -168,5 +169,15 @@ public class HederaController {
     @PostMapping("/wipetoken/{accountId}/{tokenId}/{amount}")
     public ResponseEntity<TransactionReceipt> wipetoken(@PathVariable String accountId, @PathVariable String tokenId, @PathVariable long amount) throws Exception{
       return ResponseEntity.ok(hederaService.wipeAccountForToken(AccountId.fromString(accountId), TokenId.fromString(tokenId), amount));
+    }
+
+    @PostMapping("deletetoken")
+    public ResponseEntity<TransactionReceipt> deletetoken() throws Exception{
+      return ResponseEntity.ok(hederaService.createDeleteToken());
+    }
+
+    @PostMapping("/deletetoken/{tokenId}")
+    public ResponseEntity<TransactionReceipt> deletetoken(@PathVariable String tokenId) throws Exception{
+      return ResponseEntity.ok(hederaService.deleteToken(TokenId.fromString(tokenId)));
     }
 }

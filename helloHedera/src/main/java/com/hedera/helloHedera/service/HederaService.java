@@ -19,6 +19,7 @@ import com.hedera.hashgraph.sdk.PrivateKey;
 import com.hedera.hashgraph.sdk.TokenAssociateTransaction;
 import com.hedera.hashgraph.sdk.TokenBurnTransaction;
 import com.hedera.hashgraph.sdk.TokenCreateTransaction;
+import com.hedera.hashgraph.sdk.TokenDeleteTransaction;
 import com.hedera.hashgraph.sdk.TokenFreezeTransaction;
 import com.hedera.hashgraph.sdk.TokenGrantKycTransaction;
 import com.hedera.hashgraph.sdk.TokenId;
@@ -153,18 +154,18 @@ public class HederaService {
   }
 
   //mint more fungible token on Hedera to increase the total supply of the token, allowing for additional tokens to be created and distributed.
-  public TransactionReceipt mintMoreFungibleTokens() throws Exception{
+  public TransactionReceipt mintMoreFungibleTokens(TokenId tokenId, long amount) throws Exception{
     Client client = Client.forTestnet();
     client.setOperator(AccountId.fromString(accountId), operatorKey());
     //updateTokenInfoService();
-    return new TokenMintTransaction().setTokenId(TokenId.fromString("0.0.9846074")).setAmount(5000).execute(client).getReceipt(client);
+    return new TokenMintTransaction().setTokenId(tokenId).setAmount(amount).execute(client).getReceipt(client);
   }
 
   //token burn transaction
-  public TransactionReceipt burnFungibleTokens() throws Exception{
+  public TransactionReceipt burnFungibleTokens(TokenId tokenId, long amount) throws Exception{
     Client client = Client.forTestnet();
     client.setOperator(AccountId.fromString(accountId), operatorKey());
-    return new TokenBurnTransaction().setTokenId(TokenId.fromString("0.0.9846074")).setAmount(2500).execute(client).getReceipt(client);
+    return new TokenBurnTransaction().setTokenId(tokenId).setAmount(amount).execute(client).getReceipt(client);
   }
 
   //associate an account and a token on Hedera, allowing the account to hold and interact with the specified token. with request params from the user, you can associate any account with any token on Hedera.
@@ -441,4 +442,32 @@ public class HederaService {
   //     .execute(client)
   //     .getReceipt(client);
   // }
+
+
+  //lets create an token for delete testing it
+  public TransactionReceipt createDeleteToken() throws Exception{
+    Client client = Client.forTestnet();
+    client.setOperator(AccountId.fromString(accountId), operatorKey());
+    return new TokenCreateTransaction()
+      .setTokenName("LakshyaDeleteToken")
+      .setTokenSymbol("LKDT")
+      .setInitialSupply(1000000)
+      .setDecimals(1)
+      .setTreasuryAccountId(AccountId.fromString(accountId))
+      .setAdminKey(operatorKey())
+      .setSupplyKey(operatorKey())
+      .execute(client)
+      .getReceipt(client);
+  }
+
+
+  //lets delete the token on Hedera, allowing the account to lose access and interaction with the token while ensuring compliance with regulatory requirements.
+  public TransactionReceipt deleteToken(TokenId tokenId) throws Exception{
+    Client client = Client.forTestnet();
+    client.setOperator(AccountId.fromString(accountId), operatorKey());
+    return new TokenDeleteTransaction()
+      .setTokenId(tokenId)
+      .execute(client)
+      .getReceipt(client);
+  }
 }
