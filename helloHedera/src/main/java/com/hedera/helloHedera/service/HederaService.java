@@ -13,6 +13,8 @@ import com.hedera.hashgraph.sdk.AccountId;
 import com.hedera.hashgraph.sdk.AccountInfo;
 import com.hedera.hashgraph.sdk.AccountInfoQuery;
 import com.hedera.hashgraph.sdk.Client;
+import com.hedera.hashgraph.sdk.CustomFixedFee;
+import com.hedera.hashgraph.sdk.CustomFractionalFee;
 import com.hedera.hashgraph.sdk.Hbar;
 import com.hedera.hashgraph.sdk.NftId;
 import com.hedera.hashgraph.sdk.PrivateKey;
@@ -20,6 +22,7 @@ import com.hedera.hashgraph.sdk.TokenAssociateTransaction;
 import com.hedera.hashgraph.sdk.TokenBurnTransaction;
 import com.hedera.hashgraph.sdk.TokenCreateTransaction;
 import com.hedera.hashgraph.sdk.TokenDeleteTransaction;
+import com.hedera.hashgraph.sdk.TokenFeeScheduleUpdateTransaction;
 import com.hedera.hashgraph.sdk.TokenFreezeTransaction;
 import com.hedera.hashgraph.sdk.TokenGrantKycTransaction;
 import com.hedera.hashgraph.sdk.TokenId;
@@ -38,6 +41,7 @@ import com.hedera.hashgraph.sdk.ReceiptStatusException;
 import com.hedera.hashgraph.sdk.TransactionReceipt;
 import com.hedera.hashgraph.sdk.TransactionResponse;
 import com.hedera.hashgraph.sdk.TransferTransaction;
+import com.hedera.hashgraph.sdk.proto.FixedFee;
 import com.hedera.hashgraph.sdk.proto.TokenKycStatus;
 
 import ch.qos.logback.core.subst.Token;
@@ -470,4 +474,80 @@ public class HederaService {
       .execute(client)
       .getReceipt(client);
   }
+
+  //creating token along with the transfer fee schedule, allowing for the automatic deduction of fees during token transfers on Hedera, ensuring that the appropriate fees are collected and distributed according to the defined schedule.
+  public TransactionReceipt createTokenWithTransferFeeSchedule() throws Exception{
+    Client client = Client.forTestnet();
+    client.setOperator(AccountId.fromString(accountId), operatorKey());
+    return new TokenCreateTransaction()
+      .setTokenName("LakshyaTransferFeeToken")
+      .setTokenSymbol("LKFTF")
+      .setInitialSupply(1000000)
+      .setDecimals(1)
+      .setTreasuryAccountId(AccountId.fromString(accountId))
+      .setAdminKey(operatorKey())
+      .setSupplyKey(operatorKey())
+      .setFeeScheduleKey(operatorKey())
+      .setCustomFees(new ArrayList<>(List.of(new CustomFixedFee().setAmount(2).setFeeCollectorAccountId(AccountId.fromString(accountId)))))
+      .execute(client)
+      .getReceipt(client);
+  }   
+
+
+  //token update transaction with transfer fee schedule, allowing for the modification of the token's attributes and the adjustment of the transfer fee schedule on Hedera, ensuring that the token remains up-to-date and compliant with any changes in requirements or regulations.
+
+  public TransactionReceipt updateTokenWithTransferFeeSchedule(TokenId tokenId) throws Exception{
+    Client client = Client.forTestnet();
+    client.setOperator(AccountId.fromString(accountId), operatorKey());
+    return new TokenFeeScheduleUpdateTransaction()
+      .setTokenId(tokenId)
+      .setCustomFees(new ArrayList<>(List.of(new CustomFixedFee().setHbarAmount(Hbar.from(2))
+      .setFeeCollectorAccountId(AccountId.fromString(accountId)))))
+      .execute(client)
+      .getReceipt(client);
+  }
+
+  //category one :- Fully Updateable : 
+
+  // Token name
+  // Token symbol
+  // Token memo
+  // Keys (if admin key exists)
+  // Fee schedule (if feeScheduleKey exists)
+  // Expiry information
+
+  //category two :- Partially Updateable :
+  //No pauseKey
+// ↓
+// Cannot pause
+// Ever.
+
+ //category three :- Non-Updateable :
+// Token type (FT ↔ NFT)
+// Decimals
+// Initial supply
+// Supply type (finite/infinite)
+// Max supply (with some constraints depending on supply type)
+
+//creating a token with fractional fee schedule, allowing for the automatic deduction of fees during token transfers on Hedera, ensuring that the appropriate fees are collected and distributed according to the defined schedule.
+  public TransactionReceipt createTokenWithFractionalFeeSchedule() throws Exception{
+    Client client = Client.forTestnet();
+    client.setOperator(AccountId.fromString(accountId), operatorKey());
+    return new TokenCreateTransaction()
+      .setTokenName("LakshyaFractionalFeeToken")
+      .setTokenSymbol("LKFFT")
+      .setInitialSupply(1000000)
+      .setDecimals(1)
+      .setTreasuryAccountId(AccountId.fromString(accountId))
+      .setAdminKey(operatorKey())
+      .setSupplyKey(operatorKey())
+      .setFeeScheduleKey(operatorKey())
+      .setCustomFees(new ArrayList<>(List.of(new CustomFractionalFee().setNumerator(1).setDenominator(100).setMin(1).setMax(10).setFeeCollectorAccountId(AccountId.fromString(accountId)))))
+      .execute(client)
+      .getReceipt(client);
+  }
+
+
+  
+
 }

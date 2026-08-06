@@ -180,4 +180,19 @@ public class HederaController {
     public ResponseEntity<TransactionReceipt> deletetoken(@PathVariable String tokenId) throws Exception{
       return ResponseEntity.ok(hederaService.deleteToken(TokenId.fromString(tokenId)));
     }
+
+    @PostMapping("/feetoken")
+    public ResponseEntity<TransactionReceipt> feetoken() throws Exception{
+      return ResponseEntity.ok(hederaService.createTokenWithTransferFeeSchedule());
+    }
+
+    @PostMapping("/updatetoken/{tokenId}")
+    public ResponseEntity<TransactionReceipt> updatetoken(@PathVariable String tokenId) throws Exception{
+      return ResponseEntity.ok(hederaService.updateTokenWithTransferFeeSchedule(TokenId.fromString(tokenId)));
+    }
+
+    @PostMapping("/fracfeetoken")
+    public ResponseEntity<TransactionReceipt> fracfeetoken() throws Exception{
+      return ResponseEntity.ok(hederaService.createTokenWithFractionalFeeSchedule());
+    }
 }
