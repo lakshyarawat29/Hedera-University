@@ -15,6 +15,7 @@ import com.hedera.hashgraph.sdk.AccountInfoQuery;
 import com.hedera.hashgraph.sdk.Client;
 import com.hedera.hashgraph.sdk.CustomFixedFee;
 import com.hedera.hashgraph.sdk.CustomFractionalFee;
+import com.hedera.hashgraph.sdk.CustomRoyaltyFee;
 import com.hedera.hashgraph.sdk.Hbar;
 import com.hedera.hashgraph.sdk.NftId;
 import com.hedera.hashgraph.sdk.PrivateKey;
@@ -62,6 +63,12 @@ public class HederaService {
   @Value("${hedera.reciever.account-id}")
   private String recieverAccountId;
 
+  @Value("${hedera.reciever2.account-id}")
+  private String reciever2AccountId;
+
+  @Value("${hedera.reciever2.private-key}")
+  private String reciever2PrivateKey;
+
   private PrivateKey operatorKey() {
     return PrivateKey.fromStringECDSA(
         privateKey.substring(2)
@@ -71,6 +78,12 @@ public class HederaService {
   private PrivateKey recieverOperatorKey() {
     return PrivateKey.fromStringECDSA(
         recieverPrivateKey.substring(2)
+    );
+  }
+
+  private PrivateKey recieverTwooperatorKey() {
+    return PrivateKey.fromStringECDSA(
+        reciever2PrivateKey.substring(2)
     );
   }
 
@@ -101,11 +114,11 @@ public class HederaService {
 
 
   //basic information about your Hedera account.
-  public AccountInfo getAccountInfoService() throws Exception{
+  public AccountInfo getAccountInfoService(AccountId accountId) throws Exception{
     Client client = Client.forTestnet();
-    client.setOperator(AccountId.fromString(accountId), operatorKey());
+    client.setOperator(AccountId.fromString(this.accountId), operatorKey());
 
-    AccountInfo info = new AccountInfoQuery().setAccountId(AccountId.fromString(accountId)).execute(client);
+    AccountInfo info = new AccountInfoQuery().setAccountId(accountId).execute(client);
     return info;
   }
 
@@ -214,7 +227,16 @@ public class HederaService {
   public TransactionReceipt createNFTCollection() throws Exception{
     Client client = Client.forTestnet();
     client.setOperator(AccountId.fromString(accountId), operatorKey());
-    return new TokenCreateTransaction().setTokenName("LakshyaNFT").setTokenSymbol("LKNFT").setTokenType(TokenType.NON_FUNGIBLE_UNIQUE).setTreasuryAccountId(AccountId.fromString(accountId)).setSupplyKey(operatorKey()).execute(client).getReceipt(client);
+    return new TokenCreateTransaction()
+                    .setTokenName("LakshyaNFT")
+                    .setTokenSymbol("LKNFT")
+                    .setTokenType(TokenType.NON_FUNGIBLE_UNIQUE)
+                    .setTreasuryAccountId(AccountId.fromString(accountId))
+                    .setSupplyKey(operatorKey())
+                    .setFeeScheduleKey(operatorKey())
+                    .setAdminKey(operatorKey())
+                    .execute(client)
+                    .getReceipt(client);
   }
 
   //minting within the nft collection on Hedera, allowing users to create new unique tokens within the collection and expand their digital asset offerings.
@@ -232,7 +254,7 @@ public class HederaService {
     //associate the reciever account with the tokenId before transferring the NFT
 
     //NFT Identity = Token ID+ Serial Number
-    associateAccountWithToken(AccountId.fromString(recieverAccountId), tokenId);
+    //associateAccountWithToken(AccountId.fromString(recieverAccountId), tokenId);
     return new TransferTransaction().addNftTransfer(new NftId(tokenId, serialNumber), AccountId.fromString(accountId), AccountId.fromString(recieverAccountId)).execute(client).getReceipt(client);
   }
 
@@ -545,9 +567,17 @@ public class HederaService {
       .setCustomFees(new ArrayList<>(List.of(new CustomFractionalFee().setNumerator(1).setDenominator(100).setMin(1).setMax(10).setFeeCollectorAccountId(AccountId.fromString(accountId)))))
       .execute(client)
       .getReceipt(client);
+  }  
+
+
+  //lets assign our created nft some royalty fees, allowing for the automatic deduction of fees during NFT transfers on Hedera, ensuring that the appropriate fees are collected and distributed according to the defined schedule.
+  public TransactionReceipt updateNFTWithRoyaltyFeeSchedule(TokenId tokenId) throws Exception{
+    Client client = Client.forTestnet();
+    client.setOperator(AccountId.fromString(accountId), operatorKey());
+    return new TokenFeeScheduleUpdateTransaction()
+      .setTokenId(tokenId)
+      .setCustomFees(new ArrayList<>(List.of(new CustomRoyaltyFee().setNumerator(1).setDenominator(10).setFeeCollectorAccountId(AccountId.fromString(accountId)).setFallbackFee(new CustomFixedFee().setHbarAmount(Hbar.from(1)).setFeeCollectorAccountId(AccountId.fromString(accountId))))))
+      .execute(client)
+      .getReceipt(client);
   }
-
-
-  
-
 }

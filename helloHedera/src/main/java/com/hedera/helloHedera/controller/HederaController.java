@@ -4,7 +4,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.hedera.hashgraph.sdk.AccountBalance;
@@ -36,9 +35,9 @@ public class HederaController {
       return ResponseEntity.ok(hederaService.sendHbarService());
     }
 
-    @GetMapping("/info")
-    public ResponseEntity<AccountInfo> info() throws Exception{
-      return ResponseEntity.ok(hederaService.getAccountInfoService());
+    @GetMapping("/info/{accountId}")
+    public ResponseEntity<AccountInfo> info(@PathVariable String accountId) throws Exception{
+      return ResponseEntity.ok(hederaService.getAccountInfoService(AccountId.fromString(accountId)));
     }
 
     @PostMapping("/ft")
@@ -194,5 +193,10 @@ public class HederaController {
     @PostMapping("/fracfeetoken")
     public ResponseEntity<TransactionReceipt> fracfeetoken() throws Exception{
       return ResponseEntity.ok(hederaService.createTokenWithFractionalFeeSchedule());
+    }
+
+    @PostMapping("/updateroyaltyfee/{tokenId}")
+    public ResponseEntity<TransactionReceipt> updateroyaltyfee(@PathVariable String tokenId) throws Exception{
+      return ResponseEntity.ok(hederaService.updateNFTWithRoyaltyFeeSchedule(TokenId.fromString(tokenId)));
     }
 }
